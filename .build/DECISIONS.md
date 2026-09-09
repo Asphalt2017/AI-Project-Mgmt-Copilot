@@ -73,6 +73,32 @@ Record product and engineering decisions that constrain future work. Use sequent
 
 **Consequences:** The team operates one primary application runtime and can deliver server-rendered workflows quickly. A separate frontend or distributed job system may be introduced later only when product or scaling evidence justifies it.
 
+### DEC-005: Bootstrap capability packages with an application factory
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Owners:** Project team
+- **Related:** Roadmap Phase 0; DEC-001; DEC-004
+
+**Context:** The first runnable slice needs explicit boundaries and isolated configuration before persistence and integrations are introduced.
+
+**Decision:** Keep Python 3.14, commit `.python-version` and `uv.lock`, and assemble FastAPI through `ai_copilot.main:create_app`. Organize business code by the capabilities in the operating guide, with domain policy and application use cases added within each capability. Load typed `COPILOT_` settings at app creation. Provide a public `/health` liveness route without external dependencies.
+
+**Consequences:** Tests can construct independent apps. The skeleton runs without credentials or a database; health does not imply dependency readiness. Authentication and persistence remain separate milestones.
+
+### DEC-006: Configure the first multi-page web preview in YAML
+
+- **Status:** Accepted
+- **Date:** 2026-09-09
+- **Owners:** Project team
+- **Related:** User-requested Phase 0 web preview; DEC-004; DEC-005
+
+**Context:** The user prioritized a usable multi-page web interface and explicitly requested `tests/settings/settings.yaml`, with Overview, Requirements, Implementation, and Decisions pages.
+
+**Decision:** Render the pages with Jinja and local CSS in the existing FastAPI app. A validated YAML schema controls branding, navigation, page types, and sample records. Use the requested file as the single default source and copy it into the wheel at build time. Allow a runtime `COPILOT_WEB_SETTINGS_FILE` override. Use ordinary GET forms and native disclosure elements for search, filters, and details.
+
+**Consequences:** Pages can be added without Python changes; configuration changes require a restart. Sample data is explicitly labeled, and no approvals or source mutations are simulated. This preview precedes domain persistence and authentication; it does not complete the end-to-end product MVP.
+
 ## Proposed decisions
 
 - Authentication approach for the pilot.

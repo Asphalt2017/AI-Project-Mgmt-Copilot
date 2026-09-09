@@ -1,0 +1,5 @@
+debug: true
+web_settings_file: settings.yaml
+database_url: sqlite:///./copilot.db
+cookie_secure: true
+session_lifetime_seconds: 28800

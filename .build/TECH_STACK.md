@@ -1,6 +1,6 @@
 # MVP Technology Stack
 
-**Status:** Accepted direction; exact versions pending application scaffolding  
+**Status:** Accepted direction; skeleton dependencies pinned in uv.lock
 **Decision:** DEC-004  
 **Last reviewed:** 2026-09-09
 
@@ -64,7 +64,7 @@ The stack must:
 
 ## Decisions still required before production use
 
-- Supported Python minor version and dependency pins.
+- Dependency pins for remaining stack components (Python 3.14 is selected).
 - Authentication and authorization approach.
 - Hosting platform and secret-management mechanism.
 - Model provider, regional processing, retention, and redaction policy.

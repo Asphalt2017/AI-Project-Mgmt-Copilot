@@ -33,7 +33,8 @@ The first release should prove that one team can move from issue intent to an ac
 - [x] Pre-commit hooks for file hygiene and Python linting/formatting.
 - [x] Local PostgreSQL Docker Compose service, persistent volume, and environment template.
 - [x] GitHub Actions CI for pre-commit checks and Docker Compose validation.
-- Modular monolith application structure.
+- [x] Modular monolith application structure with an app factory and health endpoint.
+- [x] YAML-configured multi-page web preview with sample content, search, and filters (user-prioritized before persistence).
 - Core domain model for:
   - source artifacts;
   - Jira issues;
@@ -44,9 +45,10 @@ The first release should prove that one team can move from issue intent to an ac
   - comparisons;
   - decisions.
 - Persistence layer with migrations.
-- Basic authentication and environment configuration.
+- [x] Typed environment configuration.
+- Basic authentication.
 - Audit-friendly provenance model for source URLs, timestamps, revisions, and extraction metadata.
-- Initial test harness and local development workflow.
+- [x] Initial test harness and local development workflow (pytest, mypy, Ruff, and CI).
 
 ### Exit Criteria
 

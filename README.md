@@ -6,7 +6,7 @@ The product helps developers understand the intent and boundaries of their work 
 
 ## Project status
 
-The project is in **Phase 0 — Foundation**. The product direction and delivery roadmap are defined; application scaffolding is the next milestone.
+The project is in **Phase 0 — Foundation**. A YAML-configured, multi-page web preview is implemented; the core domain model and persistence layer are next.
 
 ## MVP workflow
 
@@ -23,6 +23,42 @@ Jira issue
 
 Generated content is always reviewable. The system must distinguish source facts from inference, preserve provenance, and require human acceptance before changing an approved baseline.
 
+## Current web app data flow
+
+The preview loads page configuration at startup and serves read-only sample data.
+Jira ingestion, GitHub ingestion, and database persistence are future milestones.
+
+```mermaid
+flowchart TD
+    subgraph Startup[Application startup]
+        Env["Environment variables and .workspace/.env"] --> Settings["Typed application settings"]
+        Settings --> Source["Select default YAML or COPILOT_WEB_SETTINGS_FILE override"]
+        YAML["tests/settings/settings.yaml<br/>Packaged copy when installed from a wheel"] --> Source
+        Source --> Validate["Safe YAML parsing and WebConfig validation"]
+        Validate --> Config["In-memory branding, navigation, pages, and records"]
+        Validate -->|Invalid configuration| Stop["Stop startup with an error"]
+    end
+
+    subgraph Requests[Page request and response]
+        Browser["Browser"] -->|GET /| Home["Redirect to configured home page"]
+        Home --> Browser
+        Browser -->|"GET /{slug}?q=...&status=..."| Router["FastAPI page router"]
+        Config --> Router
+        Config --> Home
+        Router -->|Known page| Filter["Select page and filter records by search and status"]
+        Filter --> Templates["Jinja templates: navigation, overview, and collections"]
+        Router -->|Unknown page| NotFound["Jinja page-not-found template"]
+        Templates -->|Escaped HTML response| Browser
+        NotFound -->|HTTP 404 HTML response| Browser
+        Browser -->|GET /static/app.css| Static["Packaged stylesheet"]
+        Static -->|CSS response| Browser
+    end
+```
+
+Search and status filters operate on the loaded records without changing the YAML.
+Expandable details work in the browser. Restart the app after editing configuration;
+see [web configuration](docs/web-configuration.md) for the schema and examples.
+
 ## Technology direction
 
 The MVP will be a Python-first modular monolith:
@@ -37,7 +73,7 @@ The MVP will be a Python-first modular monolith:
 - `uv` for Python dependency and environment management;
 - Docker Compose for optional local infrastructure.
 
-See [`.build/TECH_STACK.md`](.build/TECH_STACK.md) for requirements and boundaries. Exact versions will be pinned when the application skeleton is created.
+See [`.build/TECH_STACK.md`](.build/TECH_STACK.md) for requirements and boundaries. Application dependencies are locked in `uv.lock`; remaining stack components will be added as their milestones begin.
 
 ## Repository guide
 
@@ -52,12 +88,38 @@ Application code lives under `ai_copilot/`, tests under `tests/`, with database 
 
 ## Local development
 
-Application bootstrap commands will be added with the Phase 0 skeleton. Expected prerequisites are:
+Install Python 3.14 and `uv`, then run from the repository root:
 
-- Git;
-- Python supported by the pinned project configuration;
-- `uv`;
-- PostgreSQL, either locally or through Docker.
+```bash
+uv sync --locked
+uv run uvicorn ai_copilot.main:create_app --factory --reload --host 127.0.0.1
+```
+
+Open <http://127.0.0.1:8000/> for the web app or <http://127.0.0.1:8000/docs> for API documentation. Verify liveness with
+`curl http://127.0.0.1:8000/health`, which returns `{"status":"ok"}`.
+The skeleton runs without PostgreSQL or provider credentials. This endpoint
+checks process liveness only; it does not check database readiness.
+
+Settings load from `.workspace/.env` relative to the current working directory,
+with environment variables taking precedence. `COPILOT_DEBUG` defaults to `false`;
+invalid boolean values prevent startup. No environment file is required.
+
+Run the quality checks:
+
+```bash
+uv run pytest
+uv run mypy
+uv run ruff check .
+uv run ruff format --check .
+```
+
+The web app includes Overview, Requirements, Implementation, and Decisions pages
+with sample content, search, status filters, and expandable details. Configure its
+branding, navigation, and pages in [`tests/settings/settings.yaml`](tests/settings/settings.yaml),
+then restart the app. Set `COPILOT_WEB_SETTINGS_FILE` to use another YAML file.
+This is a read-only preview; ingestion and approval workflows remain upcoming.
+See [web configuration](docs/web-configuration.md) for the schema and examples,
+and [application boundaries](ai_copilot/README.md) for the package layout.
 
 Store local environment files in `.workspace/` and API keys or credential files in `.workspace/keys/`. The entire directory is ignored by Git. Keep only placeholder values in the tracked `.env.example`. Never commit credentials, access tokens, imported customer data, or generated model traces containing private content.
 
@@ -103,7 +165,7 @@ The pinned hooks in `.pre-commit-config.yaml` check whitespace, file endings, YA
 
 The GitHub Actions workflow in `.github/workflows/ci.yaml` runs on pull requests, pushes to `main`, and manual dispatch. It runs pre-commit against all tracked files using Python 3.14 and validates Docker Compose using `.env.example`. No repository secrets are required. Hook fixes fail the check so contributors can review and commit them locally.
 
-CI also builds the Python distribution with uv, installs the wheel, and verifies that `ai_copilot` imports from outside the checkout. Application tests, type checking, and database integration tests will be added with the application skeleton.
+CI also builds the Python distribution with uv, installs the wheel, and verifies that `ai_copilot` imports from outside the checkout. A separate job installs locked dependencies and runs pytest, mypy, and Ruff. Database integration tests will be added with persistence.
 
 ## License
 

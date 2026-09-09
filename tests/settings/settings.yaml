@@ -1,0 +1,73 @@
+# Edit this file and restart the app to change pages and sample content.
+# Override its location with web_settings_file in the selected settings YAML.
+version: 1
+name: AI Delivery Copilot
+workspace: Product engineering
+notice: "Demo workspace · Sample content only. Jira and GitHub are not connected."
+home: overview
+pages:
+  - slug: overview
+    label: Overview
+    title: Keep intent and delivery aligned.
+    description: A shared view of what you are building, what is changing, and where a human decision is needed.
+    kind: overview
+  - slug: requirements
+    label: Requirements
+    title: Start with shared intent.
+    description: Explore issue context, clarify the boundaries, and review the intent behind each piece of work.
+    empty_message: No requirements yet. Add records to this page to explore your first implementation brief.
+    records:
+      - key: DEMO-101
+        title: Bring issue context into one place
+        summary: Preserve the goal, acceptance criteria, and open questions from a Jira issue.
+        status: Draft
+        owner: Product team
+        detail: "Illustrative brief: import a selected issue and retain its source revision. Open question: which Jira field holds the team's acceptance criteria? This sample has not been imported or accepted."
+      - key: DEMO-102
+        title: Make baseline history easy to follow
+        summary: Give reviewers a clear view of accepted intent and subsequent changes.
+        status: In review
+        owner: Engineering lead
+        detail: "Illustrative review: each accepted baseline should preserve its previous version and record who approved the change. Human acceptance and database persistence are not implemented in this preview."
+      - key: DEMO-103
+        title: Connect implementation to its requirement
+        summary: Link a pull request to an issue so the team can review implementation in context.
+        status: Draft
+        owner: Engineering team
+        detail: "Illustrative scope: support explicit issue keys and deliberate manual links. Automatic source-code analysis is outside the initial workflow."
+  - slug: implementation
+    label: Implementation
+    title: See what delivery is revealing.
+    description: Review implementation context and engineering findings alongside the original intent.
+    empty_message: No implementation records yet. Linked pull requests will belong here once ingestion is available.
+    records:
+      - key: SAMPLE-PR-12
+        title: Preserve source revisions during refresh
+        summary: An example implementation proposes storing a separate snapshot for each source revision.
+        status: Open
+        owner: Engineering team
+        detail: "Sample PR context, not a real GitHub pull request. Related intent: DEMO-101. A future adapter should retain source URLs, timestamps, and revision identifiers."
+      - key: SAMPLE-FINDING-01
+        title: Acceptance criteria vary between projects
+        summary: A candidate finding highlights a configuration question before issue ingestion begins.
+        status: Needs review
+        owner: Engineering lead
+        detail: "Illustrative inference only. A reviewer would need source evidence before confirming this finding. It must not change an accepted requirement automatically."
+  - slug: decisions
+    label: Decisions
+    title: Make the next step explicit.
+    description: Bring the question, context, and tradeoffs together before a person makes the call.
+    empty_message: No decisions to review. Decision candidates will appear here as the workflow develops.
+    records:
+      - key: SAMPLE-DEC-01
+        title: Who can accept an implementation baseline?
+        summary: Clarify the pilot team's approval responsibility before enabling baseline acceptance.
+        status: Needs review
+        owner: Product team
+        detail: "Sample decision candidate. Options to discuss: product owner, engineering lead, or a configurable reviewer. No decision has been recorded and no baseline has been changed."
+      - key: SAMPLE-DEC-02
+        title: Choose the first Jira field mapping
+        summary: Agree on where issue goals and acceptance criteria come from for the pilot project.
+        status: Open
+        owner: Engineering lead
+        detail: "Sample decision candidate. Review the actual Jira project configuration before choosing a mapping. There is no external connection in this preview."

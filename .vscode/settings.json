@@ -1,4 +1,14 @@
 {
+    "terminal.integrated.defaultProfile.linux": "Project Bash",
+    "terminal.integrated.profiles.linux": {
+        "Project Bash": {
+            "path": "bash",
+            "args": [
+                "--rcfile",
+                "${workspaceFolder}/.workspace/terminal.bashrc"
+            ]
+        }
+    },
     "python-envs.pythonProjects": [
         {
             "path": ".",

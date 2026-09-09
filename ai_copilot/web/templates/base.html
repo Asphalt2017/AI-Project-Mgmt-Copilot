@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page %}{{ page.label }}{% else %}Page not found{% endif %} · {{ config.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='/app.css') }}">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <aside class="sidebar">
+    <a class="brand" href="{{ url_for('web_page', slug=config.home) }}"><span class="brand-mark" aria-hidden="true">◈</span><span>{{ config.name }}<small>Clarity through delivery</small></span></a>
+    <div class="workspace"><span class="workspace-avatar" aria-hidden="true">PE</span><div>{{ config.workspace }}<small>Team workspace</small></div></div>
+    <div class="nav-label">WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      {% for item in config.pages %}
+      <a class="nav-item{% if page and item.slug == page.slug %} active{% endif %}" href="{{ url_for('web_page', slug=item.slug) }}"{% if page and item.slug == page.slug %} aria-current="page"{% endif %}>
+        <span class="nav-number" aria-hidden="true">{{ '%02d' | format(loop.index) }}</span><span>{{ item.label }}</span>{% if item.kind == 'collection' %}<span class="nav-count">{{ item.records | length }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-note"><span class="live-dot"></span> A human stays in the loop.<p>Review the evidence.<br>Decide with context.</p></div>
+  </aside>
+  <div class="app">
+    <header class="topbar"><span>{{ config.workspace }} <span class="divider">/</span> <strong>{{ page.label if page else 'Page not found' }}</strong></span><div class="account-controls"><span>{{ request.state.email }}</span><form method="post" action="{{ url_for('logout') }}"><input type="hidden" name="csrf" value="{{ request.cookies.get('copilot_csrf', '') }}"><button class="logout-button" type="submit">Log out</button></form></div></header>
+    <main id="main">
+      <div class="demo-notice"><span aria-hidden="true">ⓘ</span> {{ config.notice }}</div>
+      {% block content %}{% endblock %}
+    </main>
+    <footer>Built for shared understanding.<span>{{ config.name }}</span></footer>
+  </div>
+</body>
+</html>

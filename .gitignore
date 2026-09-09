@@ -2,7 +2,6 @@
 /.workspace/
 .env
 .env.*
-!.env.example
 *.pem
 *.key
 credentials.json
@@ -12,7 +11,6 @@ secrets/
 __pycache__/
 *.py[cod]
 *$py.class
-.python-version
 .venv/
 venv/
 env/
@@ -61,7 +59,6 @@ coverage/
 *.swp
 *.swo
 *~
-.workplace
 
 # Operating systems
 .DS_Store
