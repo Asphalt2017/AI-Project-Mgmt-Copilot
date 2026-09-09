@@ -1,0 +1,72 @@
+# Local configuration and secrets
+/.workspace/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Test and analysis artifacts
+.hypothesis/
+.tox/
+.nox/
+test-results/
+reports/
+
+# Runtime data
+*.db
+*.sqlite
+*.sqlite3
+data/
+logs/
+tmp/
+
+# Generated AI and integration artifacts
+traces/
+exports/
+imports/
+graphify-out/
+
+# JavaScript tooling (if introduced for isolated assets)
+node_modules/
+.vite/
+coverage/
+
+# IDEs and editors
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+.workplace
+
+# Operating systems
+.DS_Store
+Thumbs.db
+
+# Containers and local overrides
+docker-compose.override.yml
+compose.override.yml
