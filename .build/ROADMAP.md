@@ -46,7 +46,7 @@ The first release should prove that one team can move from issue intent to an ac
   - decisions.
 - Persistence layer with migrations.
 - [x] Typed environment configuration.
-- Basic authentication.
+- [x] Basic authentication.
 - Audit-friendly provenance model for source URLs, timestamps, revisions, and extraction metadata.
 - [x] Initial test harness and local development workflow (pytest, mypy, Ruff, and CI).
 

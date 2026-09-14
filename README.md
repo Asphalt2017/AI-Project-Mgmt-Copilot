@@ -26,13 +26,13 @@ Generated content is always reviewable. The system must distinguish source facts
 ## Current web app data flow
 
 The preview loads page configuration at startup and serves read-only sample data.
-Jira ingestion, GitHub ingestion, and database persistence are future milestones.
+Jira ingestion and GitHub ingestion are future milestones. Authentication uses durable database storage.
 
 ```mermaid
 flowchart TD
     subgraph Startup[Application startup]
-        Env["Environment variables and .workspace/.env"] --> Settings["Typed application settings"]
-        Settings --> Source["Select default YAML or COPILOT_WEB_SETTINGS_FILE override"]
+        Env["APP_SETTINGS"] --> Settings["Typed application settings"]
+        Settings --> Source["Select page YAML from settings"]
         YAML["tests/settings/settings.yaml<br/>Packaged copy when installed from a wheel"] --> Source
         Source --> Validate["Safe YAML parsing and WebConfig validation"]
         Validate --> Config["In-memory branding, navigation, pages, and records"]
@@ -84,7 +84,7 @@ The [`.build`](.build/README.md) directory is the project control plane:
 - [`DECISIONS.md`](.build/DECISIONS.md) — accepted choices and rationale;
 - [`THOUGHTS.md`](.build/THOUGHTS.md) — unresolved ideas, assumptions, and risks.
 
-Application code lives under `ai_copilot/`, tests under `tests/`, with database migrations planned under `migrations/` and operational documentation under `docs/`.
+Application code lives under `ai_copilot/`, tests under `tests/`, with authentication tables initialized on startup and versioned database migrations planned under `migrations/` and operational documentation under `docs/`.
 
 ## Local development
 
@@ -92,17 +92,34 @@ Install Python 3.14 and `uv`, then run from the repository root:
 
 ```bash
 uv sync --locked
-uv run uvicorn ai_copilot.main:create_app --factory --reload --host 127.0.0.1
+uv run python -m ai_copilot.main --debug --port 8000 --host 127.0.0.1 --settings tests/settings/config.yaml
 ```
 
 Open <http://127.0.0.1:8000/> for the web app or <http://127.0.0.1:8000/docs> for API documentation. Verify liveness with
 `curl http://127.0.0.1:8000/health`, which returns `{"status":"ok"}`.
-The skeleton runs without PostgreSQL or provider credentials. This endpoint
+The app runs with local SQLite without PostgreSQL or provider credentials. This endpoint
 checks process liveness only; it does not check database readiness.
 
-Settings load from `.workspace/.env` relative to the current working directory,
-with environment variables taking precedence. `COPILOT_DEBUG` defaults to `false`;
-invalid boolean values prevent startup. No environment file is required.
+The module launcher accepts `--debug` / `--no-debug`, `--host`, `--port`, and
+`--settings` (also spelled `-settings`). Omitted options are read from `DEBUG`,
+`HOST`, `PORT`, and `APP_SETTINGS`, respectively. Every launcher option must be
+provided through the command line or environment; missing or invalid values stop
+startup with an error. Command-line values take precedence. Debug mode enables
+FastAPI debug responses and debug logging, without a reload subprocess so debugger
+breakpoints stay in the launched process.
+
+For example, launch entirely from environment variables:
+
+```bash
+DEBUG=true HOST=127.0.0.1 PORT=8000 APP_SETTINGS=tests/settings/config.yaml python -m ai_copilot.main
+```
+
+Startup requires a settings YAML file. Pass it through `APP_SETTINGS`, or use
+`--settings` for commands that provide that option. Defaults such as debug mode,
+the web settings file, database URL, cookie policy, and session lifetime live in
+[`tests/settings/config.yaml`](tests/settings/config.yaml). Explicit env files
+or constructor values can override those YAML values when tests or local tooling
+pass them in.
 
 Run the quality checks:
 
@@ -116,12 +133,13 @@ uv run ruff format --check .
 The web app includes Overview, Requirements, Implementation, and Decisions pages
 with sample content, search, status filters, and expandable details. Configure its
 branding, navigation, and pages in [`tests/settings/settings.yaml`](tests/settings/settings.yaml),
-then restart the app. Set `COPILOT_WEB_SETTINGS_FILE` to use another YAML file.
+then restart the app. Set `web_settings_file` in the selected settings YAML to
+use another page YAML file.
 This is a read-only preview; ingestion and approval workflows remain upcoming.
 See [web configuration](docs/web-configuration.md) for the schema and examples,
 and [application boundaries](ai_copilot/README.md) for the package layout.
 
-Store local environment files in `.workspace/` and API keys or credential files in `.workspace/keys/`. The entire directory is ignored by Git. Keep only placeholder values in the tracked `.env.example`. Never commit credentials, access tokens, imported customer data, or generated model traces containing private content.
+Store local environment files in `.workspace/` and API keys or credential files in `.workspace/keys/`. The entire directory is ignored by Git. Never commit credentials, access tokens, imported customer data, or generated model traces containing private content.
 
 ### Local database
 
@@ -129,13 +147,14 @@ Install Docker Engine with the Compose plugin, or Docker Desktop. Start PostgreS
 
 ```bash
 mkdir -p .workspace/keys
-cp -n .env.example .workspace/.env
+touch .workspace/.env
+# Set POSTGRES_PASSWORD in .workspace/.env before starting PostgreSQL.
 chmod 700 .workspace .workspace/keys
 chmod 600 .workspace/.env
 docker compose --env-file .workspace/.env up -d --wait db
 ```
 
-Skip the copy if you already have a `.workspace/.env`. The example credentials are for local development only. PostgreSQL is available at `127.0.0.1:5432`, with database `ai_delivery_copilot` and user `copilot`. Set `POSTGRES_PORT` in `.workspace/.env` if port 5432 is already in use. Application code running locally will use this host and port; a future application container will use `db:5432`.
+Set `POSTGRES_PASSWORD` in `.workspace/.env` before starting the database. PostgreSQL is available at `127.0.0.1:5432`, with database `ai_delivery_copilot` and user `copilot`. Set `POSTGRES_PORT` in `.workspace/.env` if port 5432 is already in use. Application code running locally will use this host and port; a future application container will use `db:5432`.
 
 ```bash
 docker compose --env-file .workspace/.env ps
@@ -163,10 +182,47 @@ The pinned hooks in `.pre-commit-config.yaml` check whitespace, file endings, YA
 
 ### Continuous integration
 
-The GitHub Actions workflow in `.github/workflows/ci.yaml` runs on pull requests, pushes to `main`, and manual dispatch. It runs pre-commit against all tracked files using Python 3.14 and validates Docker Compose using `.env.example`. No repository secrets are required. Hook fixes fail the check so contributors can review and commit them locally.
+The GitHub Actions workflow in `.github/workflows/ci.yaml` runs on pull requests, pushes to `main`, and manual dispatch. It runs pre-commit against all tracked files using Python 3.14 and validates Docker Compose using a placeholder password supplied by CI. No repository secrets are required. Hook fixes fail the check so contributors can review and commit them locally.
 
 CI also builds the Python distribution with uv, installs the wheel, and verifies that `ai_copilot` imports from outside the checkout. A separate job installs locked dependencies and runs pytest, mypy, and Ruff. Database integration tests will be added with persistence.
 
 ## License
 
 No open-source license has been selected. Until one is added, the repository should be treated as all rights reserved.
+
+### Sign in and account setup
+
+Install dependencies with `uv sync`. For local HTTP development, set
+`cookie_secure: false` in the selected settings YAML.
+The default database is `sqlite:///./copilot.db`, relative to the working directory.
+Create an account from the same directory and environment used to run the app:
+
+```bash
+uv run python -m ai_copilot.operations.auth --settings tests/settings/config.yaml you@example.com
+uv run python -m ai_copilot.main --debug --port 8000 --host 127.0.0.1 --settings tests/settings/config.yaml
+```
+
+The account command prompts for a password and confirmation without echoing it.
+Passwords must contain 15–1024 characters. Visit `http://127.0.0.1:8000/login`.
+Workspace pages require login; the top bar provides a Log out button.
+Health, static assets, and API documentation remain public.
+
+To use the Compose PostgreSQL service, set `database_url` in the selected
+settings YAML to
+`postgresql+psycopg://copilot:YOUR_PASSWORD@127.0.0.1:5432/ai_delivery_copilot`
+with your actual password (URL-encode special characters). Startup and the account
+command create `"user".auth` and `"user".sessions` if absent. SQLite uses the same
+logical tables without a schema prefix. The database account needs permission to
+create these tables and the PostgreSQL schema on first use.
+
+`ai_copilot/tools/encription.py` stores Argon2id password hashes with random salts;
+there is no reversible password encryption. Session tokens are random, stored
+only as SHA-256 hashes in the database, expire after eight hours by default, and
+are revoked on logout. Forms validate CSRF tokens. Authentication responses and
+workspace pages disable caching. All provisioned accounts currently share the
+same workspace; project roles and password-reset flows are not implemented.
+
+Use HTTPS and `cookie_secure: true` outside local development. Login allows ten attempts per client IP per five minutes per
+worker, with an additional worker-wide cap. For multiple workers or replicas,
+configure shared rate limiting at the ingress and trust forwarded IP headers
+only from your proxy. Protect the database file and backups as credential data.

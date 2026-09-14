@@ -649,3 +649,13 @@ footer {
     transition:none!important;
   }
 }
+
+.login-body { display: grid; min-height: 100vh; place-items: center; padding: 24px; }
+.login-card { width: min(100%, 420px); padding: 36px; background: white; border: 1px solid #dce3e0; border-radius: 16px; box-shadow: 0 12px 40px #183d2510; }
+.login-form { display: grid; gap: 12px; margin: 28px 0; }
+.login-form input { width: 100%; padding: 12px; border: 1px solid #899d93; border-radius: 6px; font: inherit; }
+.login-form button, .logout-button { padding: 10px 16px; border: 0; border-radius: 6px; background: #214d3b; color: white; font: inherit; cursor: pointer; }
+.login-form button { margin-top: 12px; }
+.login-error { color: #a32424; }
+.login-help { color: #596b62; font-size: 14px; }
+.account-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }

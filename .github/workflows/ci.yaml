@@ -84,4 +84,6 @@ jobs:
         with:
           persist-credentials: false
       - name: Validate local database configuration
-        run: docker compose --env-file .env.example config --quiet
+        env:
+          POSTGRES_PASSWORD: ci-validation-only
+        run: docker compose config --quiet
